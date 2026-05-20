@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings
@@ -12,6 +13,7 @@ class RAGSettings(BaseSettings):
         "fast", "cost_effective", "agentic", "agentic_plus"
     ] = "agentic"
     embedding_model: str = "embeddinggemma"
+    vector_persist_path: Path = Path(".chroma")
 
 
 settings = RAGSettings()

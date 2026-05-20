@@ -1,6 +1,5 @@
 import uuid
 from pathlib import Path
-from typing import Any
 
 import chromadb
 from langchain_core.output_parsers import StrOutputParser
@@ -37,6 +36,19 @@ _context_chain = (
 )
 
 
+def is_game_indexed(game_name: str) -> bool:
+    return game_name in list_indexed_games()
+
+
+def list_indexed_games() -> list[str]:
+    db_client = make_vector_db_client()
+    return [col.name for col in db_client.list_collections()]
+
+
+def make_vector_db_client():
+    return chromadb.PersistentClient(settings.vector_persist_path)
+
+
 async def parse_rulebook(rulebook_file_path: Path) -> ParsingGetResponse:
     llama_client = AsyncLlamaCloud()
     file = await llama_client.files.create(file=rulebook_file_path, purpose="parse")
@@ -48,13 +60,13 @@ async def parse_rulebook(rulebook_file_path: Path) -> ParsingGetResponse:
     )
 
 
-async def index_rulebook(rulebook_file_path: Path, game_name: str) -> Any:
+async def index_game(rulebook_file_path: Path, game_name: str) -> int:
     """
-    Indexes a rulebook PDF using llama to parse the PDF, splitting by markdown
+    Indexes a game's rulebook PDF using llama to parse the PDF, splitting by markdown
     sections and smaller chunks that are enriched with section context summary
     """
-    chroma_client = chromadb.PersistentClient(".chroma")
-    collection = chroma_client.create_collection(name=game_name)
+    db_client = make_vector_db_client()
+    collection = db_client.create_collection(name=game_name)
 
     print(f"parsing rulebook for {game_name}...")
     rulebook = await parse_rulebook(rulebook_file_path)
@@ -92,4 +104,4 @@ async def index_rulebook(rulebook_file_path: Path, game_name: str) -> Any:
 
     collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
-    return [collection, chunks]
+    return len(chunks)
