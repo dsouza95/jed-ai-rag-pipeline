@@ -1,5 +1,6 @@
 __pycache__
 .chainlit
+.chroma
 *.egg-info
 .envrc
 .venv

@@ -5,5 +5,5 @@ from rag_pipeline.settings import settings
 
 def make_embeddings() -> OllamaEmbeddings:
     return OllamaEmbeddings(
-        model=settings.embedder_model,
+        model=settings.embedding_model,
     )
