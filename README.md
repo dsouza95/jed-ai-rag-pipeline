@@ -17,6 +17,15 @@ uv sync
 uv run dev        # starts the Chainlit dev server
 ```
 
+### Ollama models
+
+The pipeline uses three local Ollama models. Pull them before running:
+
+| Role | Default alias | Pull command |
+|---|---|---|
+| Chat / generation | `gemma4:e4b` | `ollama pull gemma4:e4b` |
+| Chunk context summarisation | `qwen3:1.7b` | `ollama pull qwen3:1.7b` 
+
 ## Quality checks
 
 [Ruff](https://docs.astral.sh/ruff/) (lint + format) and [basedpyright](https://docs.basedpyright.com/) (type checking) run automatically on every commit via [pre-commit](https://pre-commit.com/).

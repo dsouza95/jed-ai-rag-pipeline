@@ -22,7 +22,10 @@ async def on_chat_start():
 
     game_name = res.get("output", "").strip() if res is not None else ""
     if not game_name:
-        raise ValueError("Game name is empty!")
+        await cl.Message(
+            content="No game name provided. Please restart the chat."
+        ).send()
+        return
 
     cl.user_session.set("game", game_name)
     if is_game_indexed(game_name):
@@ -39,18 +42,21 @@ async def on_chat_start():
     ).send()
 
     if not file_res:
-        raise ValueError("No file received.")
+        await cl.Message(
+            content="""No file received. Please restart
+            the chat and upload the rulebook PDF."""
+        ).send()
+        return
 
     file = file_res[0]
 
-    msg = await cl.Message(
+    await cl.Message(
         content=f"""Indexing **{game_name}**...
         Please be patient, this might take a while!"""
     ).send()
 
     await index_game(Path(file.path), game_name)
 
-    await msg.update()
     await cl.Message(content=f"Done! Ask me anything about **{game_name}**.").send()
 
 

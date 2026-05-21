@@ -2,6 +2,7 @@ import uuid
 from pathlib import Path
 
 import chromadb
+from chromadb.errors import NotFoundError
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
@@ -37,7 +38,12 @@ _context_chain = (
 
 
 def is_game_indexed(game_name: str) -> bool:
-    return game_name in list_indexed_games()
+    try:
+        make_vector_db_client().get_collection(name=game_name)
+    except NotFoundError:
+        return False
+    else:
+        return True
 
 
 def list_indexed_games() -> list[str]:
@@ -66,6 +72,12 @@ async def index_game(rulebook_file_path: Path, game_name: str) -> int:
     sections and smaller chunks that are enriched with section context summary
     """
     db_client = make_vector_db_client()
+    try:
+        db_client.get_collection(name=game_name)
+        db_client.delete_collection(name=game_name)
+    except NotFoundError:
+        pass
+
     collection = db_client.create_collection(name=game_name)
 
     print(f"parsing rulebook for {game_name}...")

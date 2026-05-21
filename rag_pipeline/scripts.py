@@ -1,8 +1,5 @@
-import subprocess
-from pathlib import Path
-
-_ROOT = Path(__file__).parent.parent
+from chainlit.cli import run_chainlit
 
 
 def dev():
-    subprocess.run(["chainlit", "run", "app.py", "--watch"], check=True, cwd=_ROOT)
+    run_chainlit("app.py")
