@@ -13,6 +13,7 @@ class RAGSettings(BaseSettings):
         "fast", "cost_effective", "agentic", "agentic_plus"
     ] = "agentic"
     embedding_model: str = "embeddinggemma"
+    rulebooks_path: Path = Path(".rulebooks")
     vector_persist_path: Path = Path(".chroma")
 
 
