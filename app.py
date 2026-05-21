@@ -50,14 +50,16 @@ async def on_chat_start():
 
     file = file_res[0]
 
-    await cl.Message(
-        content=f"""Indexing **{game_name}**...
-        Please be patient, this might take a while!"""
-    ).send()
+    msg = await cl.Message(content=f"Indexing **{game_name}**...").send()
 
-    await index_game(Path(file.path), game_name)
+    async def on_progress(current: int, total: int) -> None:
+        msg.content = f"Indexing **{game_name}**... {current}/{total} chunks"
+        await msg.update()
 
-    await cl.Message(content=f"Done! Ask me anything about **{game_name}**.").send()
+    await index_game(Path(file.path), game_name, on_progress=on_progress)
+
+    msg.content = f"Done! Ask me anything about **{game_name}**."
+    await msg.update()
 
 
 @cl.on_message

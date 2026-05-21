@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 import chromadb
@@ -12,9 +13,10 @@ from langchain_text_splitters import (
 )
 from llama_cloud import AsyncLlamaCloud
 from llama_cloud.types import ParsingGetResponse
-from tqdm.asyncio import tqdm
 
 from rag_pipeline.settings import settings
+
+ProgressCallback = Callable[[int, int], Awaitable[None]]
 
 _CONTEXT_SUMMARY_PROMPT = ChatPromptTemplate.from_template("""
 Here is a section from a board game rulebook:
@@ -66,7 +68,11 @@ async def parse_rulebook(rulebook_file_path: Path) -> ParsingGetResponse:
     )
 
 
-async def index_game(rulebook_file_path: Path, game_name: str) -> int:
+async def index_game(
+    rulebook_file_path: Path,
+    game_name: str,
+    on_progress: ProgressCallback | None = None,
+) -> int:
     """
     Indexes a game's rulebook PDF using llama to parse the PDF, splitting by markdown
     sections and smaller chunks that are enriched with section context summary
@@ -103,7 +109,7 @@ async def index_game(rulebook_file_path: Path, game_name: str) -> int:
     print(f"split rulebook into {len(sections)} sections and {len(chunks)} chunks")
 
     ids, documents, metadatas = [], [], []
-    async for chunk in tqdm(chunks, desc="Enriching chunks...", unit="chunk"):
+    for i, chunk in enumerate(chunks):
         context = await _context_chain.ainvoke(
             {
                 "section": chunk.metadata.get("section", ""),
@@ -113,6 +119,8 @@ async def index_game(rulebook_file_path: Path, game_name: str) -> int:
         ids.append(str(uuid.uuid4()))
         documents.append(f"{context}\n\n{chunk.page_content}")
         metadatas.append({**chunk.metadata, "game": game_name})
+        if on_progress:
+            await on_progress(i + 1, len(chunks))
 
     collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
