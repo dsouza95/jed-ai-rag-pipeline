@@ -1,4 +1,4 @@
-import shutil
+import re
 import uuid
 from collections.abc import Awaitable, Callable
 from pathlib import Path
@@ -44,9 +44,7 @@ async def _enrich_chunks(
             }
         )
 
-        content = chunk.page_content.strip()
-        if "<page>" in chunk.page_content:
-            content = content.split("</page>", 1)[-1].strip()
+        content = re.sub(r"<page>\d+</page>", "", chunk.page_content).strip()
         if not content:
             continue
 
@@ -123,19 +121,12 @@ def _split_into_chunks(markdown: str, first_page_num: int) -> list[Document]:
     return chunks
 
 
-def _copy_rulebook(rulebook_file_path: Path, game_name: str) -> None:
-    settings.rulebooks_path.mkdir(exist_ok=True)
-    shutil.copy2(rulebook_file_path, get_rulebook_path(game_name))
-
-
 async def index_game(
     rulebook_file_path: Path,
     game_name: str,
     on_progress: IndexProgressCallback | None = None,
 ) -> int:
     collection = _reset_collection(game_name)
-
-    _copy_rulebook(rulebook_file_path, game_name)
 
     pages = await _parse_rulebook(rulebook_file_path)
     first_page_num = pages[0].page_number
@@ -147,10 +138,6 @@ async def index_game(
     collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
     return len(chunks)
-
-
-def get_rulebook_path(game_name: str) -> Path:
-    return settings.rulebooks_path / f"{game_name}.pdf"
 
 
 def is_game_indexed(game_name: str) -> bool:

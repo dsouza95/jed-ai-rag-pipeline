@@ -83,7 +83,7 @@ def _build_source_elements(chunks: list[tuple[str, Metadata]]) -> list[cl.Text]:
     return elements
 
 
-def _strip_images_from_content(content: str):
+def _strip_images_from_content(content: str) -> str:
     return re.sub(
         r"!\[.*?\]\(.*?\.(png|jpe?g|gif|webp|svg|bmp|tiff?)\)",
         "",
