@@ -89,10 +89,7 @@ async def _build_test_cases(
     for q in dataset.questions:
         chunks = retrieve(col_name, q.question, nresults, cfg=config)
         context_str = build_context(chunks)
-        retrieval_context: list[Any] = [
-            doc.removeprefix(str(meta.get("context", "")) + "\n\n")
-            for doc, meta in chunks
-        ]
+        retrieval_context: list[Any] = [doc for doc, _ in chunks]
         answer = await rag_chain.ainvoke(
             {"game": dataset.game, "context": context_str, "input": q.question}
         )

@@ -1,3 +1,4 @@
+import re
 import uuid
 from collections.abc import Awaitable, Callable
 from pathlib import Path
@@ -17,25 +18,20 @@ from rag_pipeline.settings import RAGSettings, settings
 from rag_pipeline.types import RulebookPage
 
 IndexProgressCallback = Callable[[int, int], Awaitable[None]]
-_PAGE_START_TAG = "<page>"
-_PAGE_END_TAG = "</page>"
 
 
 def _assign_page_to_chunks(chunks: list[Document], first_page_num: int) -> None:
+    page_tag_re = re.compile(r"<page>(\d+)</page>")
     current_page = first_page_num
     for chunk in chunks:
-        if _PAGE_START_TAG in chunk.page_content:
-            tag, content = chunk.page_content.split(_PAGE_END_TAG, 1)
-            current_page = int(tag.split(_PAGE_START_TAG)[1])
-            chunk.page_content = content.strip()
-
+        if match := page_tag_re.search(chunk.page_content):
+            current_page = int(match.group(1))
+        chunk.page_content = page_tag_re.sub("", chunk.page_content).strip()
         chunk.metadata["page"] = current_page
 
 
 def _build_full_markdown(pages: list[RulebookPage]) -> str:
-    return "\n\n".join(
-        f"{_PAGE_START_TAG}{p.page_number}{_PAGE_END_TAG}\n{p.markdown}" for p in pages
-    )
+    return "\n\n".join(f"<page>{p.page_number}</page>\n{p.markdown}" for p in pages)
 
 
 def _create_collection(name: str, cfg: RAGSettings = settings) -> chromadb.Collection:
