@@ -10,6 +10,7 @@ from rag_pipeline import (
     index_game,
     is_game_indexed,
     list_indexed_games,
+    parse_rulebook,
     retrieve,
 )
 
@@ -64,7 +65,8 @@ async def on_chat_start():
         msg.content = f"Indexing **{game_name}**... {current}/{total} chunks"
         await msg.update()
 
-    await index_game(Path(file.path), game_name, on_progress=on_progress)
+    pages = await parse_rulebook(Path(file.path))
+    await index_game(game_name, pages, on_progress=on_progress)
 
     msg.content = f"Done! Ask me anything about **{game_name}**."
     await msg.update()
@@ -75,8 +77,9 @@ def _build_source_elements(chunks: list[tuple[str, Metadata]]) -> list[cl.Text]:
 
     for i, (doc, meta) in enumerate(chunks):
         name = f"p. {meta.get('page', '')}" if meta.get("page") else f"excerpt {i + 1}"
-        raw_content = str(meta.get("content")).strip()
-        parsed_content = _strip_images_from_content(raw_content)
+        context = str(meta.get("context", ""))
+        content = doc.removeprefix(f"{context}\n\n")
+        parsed_content = _strip_images_from_content(content)
         if parsed_content:
             elements.append(cl.Text(name=name, content=parsed_content, display="page"))
 

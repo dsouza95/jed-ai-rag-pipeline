@@ -1,42 +1,68 @@
-import re
 import uuid
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 import chromadb
-from chromadb.api.types import Metadata
 from chromadb.errors import NotFoundError
 from langchain_core.documents import Document
-from langchain_text_splitters import (
-    MarkdownHeaderTextSplitter,
-    RecursiveCharacterTextSplitter,
-)
 from llama_cloud import AsyncLlamaCloud
 from llama_cloud.types.parsing_get_response import MarkdownPageMarkdownResultPage
 
+from rag_pipeline.chunking import get_chunker
+from rag_pipeline.chunking.page import PageChunker
 from rag_pipeline.db import make_vector_db_client
+from rag_pipeline.embedding import get_embedding_function
 from rag_pipeline.indexer.context_chain import chain
-from rag_pipeline.settings import settings
+from rag_pipeline.settings import RAGSettings, settings
+from rag_pipeline.types import RulebookPage
 
 IndexProgressCallback = Callable[[int, int], Awaitable[None]]
+_PAGE_START_TAG = "<page>"
+_PAGE_END_TAG = "</page>"
 
 
-def _build_markdown(pages: list[MarkdownPageMarkdownResultPage]) -> str:
+def _assign_page_to_chunks(chunks: list[Document], first_page_num: int) -> None:
+    current_page = first_page_num
+    for chunk in chunks:
+        if _PAGE_START_TAG in chunk.page_content:
+            tag, content = chunk.page_content.split(_PAGE_END_TAG, 1)
+            current_page = int(tag.split(_PAGE_START_TAG)[1])
+            chunk.page_content = content.strip()
+
+        chunk.metadata["page"] = current_page
+
+
+def _build_full_markdown(pages: list[RulebookPage]) -> str:
     return "\n\n".join(
-        f"<page>{page.page_number}</page>\n{page.markdown}" for page in pages
+        f"{_PAGE_START_TAG}{p.page_number}{_PAGE_END_TAG}\n{p.markdown}" for p in pages
     )
+
+
+def _create_collection(name: str, cfg: RAGSettings = settings) -> chromadb.Collection:
+    db_client = make_vector_db_client(cfg.vector_persist_path)
+    emb_fn = get_embedding_function(cfg.embedding_model)
+    return db_client.create_collection(name=name, embedding_function=emb_fn)
+
+
+def _maybe_reset_collection(name: str, cfg: RAGSettings = settings):
+    db_client = make_vector_db_client(cfg.vector_persist_path)
+    try:
+        db_client.delete_collection(name=name)
+    except NotFoundError:
+        pass
 
 
 async def _enrich_chunks(
     chunks: list[Document],
     game_name: str,
-    on_progress: IndexProgressCallback | None,
-) -> tuple[list[str], list[str], list[Metadata]]:
-    ids: list[str] = []
-    documents: list[str] = []
-    metadatas: list[Metadata] = []
+    on_progress: IndexProgressCallback | None = None,
+) -> list[Document]:
+    enriched: list[Document] = []
 
     for i, chunk in enumerate(chunks):
+        if not chunk.page_content:
+            continue
+
         context = await chain.ainvoke(
             {
                 "section": chunk.metadata.get("section", ""),
@@ -44,35 +70,25 @@ async def _enrich_chunks(
             }
         )
 
-        content = re.sub(r"<page>\d+</page>", "", chunk.page_content).strip()
-        if not content:
-            continue
-
-        metadata: Metadata = {
-            **chunk.metadata,
-            "game": game_name,
-            "context": context,
-            "content": content,
-        }
-
-        ids.append(str(uuid.uuid4()))
-        documents.append(f"{context}\n\n{content}")
-        metadatas.append(metadata)
+        chunk.page_content = f"{context}\n\n{chunk.page_content}"
+        chunk.metadata.update({"game": game_name, "context": context})
+        enriched.append(chunk)
 
         if on_progress:
             await on_progress(i + 1, len(chunks))
 
-    return ids, documents, metadatas
+    return enriched
 
 
-async def _parse_rulebook(
+async def parse_rulebook(
     rulebook_file_path: Path,
-) -> list[MarkdownPageMarkdownResultPage]:
+    cfg: RAGSettings = settings,
+) -> list[RulebookPage]:
     llama_client = AsyncLlamaCloud()
     file = await llama_client.files.create(file=rulebook_file_path, purpose="parse")
     rulebook = await llama_client.parsing.parse(
         file_id=file.id,
-        tier=settings.document_parse_tier,
+        tier=cfg.document_parse_tier,
         version="latest",
         expand=["markdown"],
     )
@@ -84,71 +100,48 @@ async def _parse_rulebook(
     if not successful_pages:
         raise ValueError("Failed to parse rulebook or rulebook is empty")
 
-    return successful_pages
-
-
-def _reset_collection(game_name: str) -> chromadb.Collection:
-    db_client = make_vector_db_client()
-    try:
-        db_client.get_collection(name=game_name)
-        db_client.delete_collection(name=game_name)
-    except NotFoundError:
-        pass
-    return db_client.create_collection(name=game_name)
-
-
-def _split_into_chunks(markdown: str, first_page_num: int) -> list[Document]:
-    section_splitter = MarkdownHeaderTextSplitter(
-        headers_to_split_on=[("#", "section"), ("##", "subsection")],
-        strip_headers=False,
-    )
-    chunk_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=settings.chunk_size,
-        chunk_overlap=settings.chunk_overlap,
-    )
-
-    sections = section_splitter.split_text(markdown)
-    chunks = chunk_splitter.split_documents(sections)
-
-    current_page_num = first_page_num
-    for chunk in chunks:
-        if "<page>" in chunk.page_content:
-            current_page_num = int(
-                chunk.page_content.split("<page>")[1].split("</page>")[0]
-            )
-        chunk.metadata["page"] = current_page_num
-
-    return chunks
+    return [RulebookPage(p.page_number, p.markdown) for p in successful_pages]
 
 
 async def index_game(
-    rulebook_file_path: Path,
     game_name: str,
+    pages: list[RulebookPage],
+    cfg: RAGSettings = settings,
+    collection_name: str | None = None,
     on_progress: IndexProgressCallback | None = None,
 ) -> int:
-    collection = _reset_collection(game_name)
+    collection_name = collection_name or game_name
+    _maybe_reset_collection(collection_name, cfg)
+    collection = _create_collection(collection_name, cfg)
 
-    pages = await _parse_rulebook(rulebook_file_path)
-    first_page_num = pages[0].page_number
+    chunker = get_chunker(cfg.chunking_strategy)
+    if isinstance(chunker, PageChunker):
+        chunks = chunker.split(pages)
+    else:
+        markdown = _build_full_markdown(pages)
+        chunks = chunker.split(markdown)
+        _assign_page_to_chunks(chunks, first_page_num=pages[0].page_number)
 
-    markdown = _build_markdown(pages)
-    chunks = _split_into_chunks(markdown, first_page_num)
-    ids, documents, metadatas = await _enrich_chunks(chunks, game_name, on_progress)
-
-    collection.add(ids=ids, documents=documents, metadatas=metadatas)
-
+    chunks = await _enrich_chunks(chunks, game_name, on_progress)
+    collection.add(
+        ids=[str(uuid.uuid4()) for _ in chunks],
+        documents=[c.page_content for c in chunks],
+        metadatas=[c.metadata for c in chunks],
+    )
     return len(chunks)
 
 
-def is_game_indexed(game_name: str) -> bool:
+def is_game_indexed(game_name: str, cfg: RAGSettings = settings) -> bool:
     try:
-        make_vector_db_client().get_collection(name=game_name)
+        make_vector_db_client(cfg.vector_persist_path).get_collection(name=game_name)
     except NotFoundError:
         return False
     else:
         return True
 
 
-def list_indexed_games() -> list[str]:
-    db_client = make_vector_db_client()
-    return [col.name for col in db_client.list_collections()]
+def list_indexed_games(cfg: RAGSettings = settings) -> list[str]:
+    return [
+        col.name
+        for col in make_vector_db_client(cfg.vector_persist_path).list_collections()
+    ]
