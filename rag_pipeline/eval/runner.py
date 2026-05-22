@@ -1,9 +1,6 @@
-import asyncio
 import re
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
 
+from chromadb.api.types import Metadata
 from deepeval import evaluate
 from deepeval.evaluate.configs import AsyncConfig, DisplayConfig
 from deepeval.metrics import (
@@ -17,30 +14,15 @@ from deepeval.test_case import LLMTestCase
 from rag_pipeline.chain import chain as rag_chain
 from rag_pipeline.eval.dataset import EvalDataset
 from rag_pipeline.eval.settings import EvalSettings
+from rag_pipeline.eval.types import EvalResult, MetricScores, QuestionResult
 from rag_pipeline.indexer.indexer import index_game
 from rag_pipeline.retriever import build_context, retrieve
 from rag_pipeline.types import RulebookPage
 
 
-@dataclass
-class MetricScores:
-    answer_relevancy: float
-    context_relevancy: float
-    faithfulness: float
-
-    @property
-    def average(self) -> float:
-        return (self.context_relevancy + self.faithfulness + self.answer_relevancy) / 3
-
-
-@dataclass
-class EvalResult:
-    config: EvalSettings
-    scores: MetricScores
-    n_evaluated: int
-
-
-def _score_test_cases(test_cases: list[Any], judge: OllamaModel) -> MetricScores:
+def _score_test_cases(
+    test_cases: list[LLMTestCase], judge: OllamaModel
+) -> list[MetricScores]:
     metric_args = {"model": judge, "async_mode": False, "threshold": 0.0}
     metrics = [
         ContextualRelevancyMetric(**metric_args),
@@ -60,49 +42,48 @@ def _score_test_cases(test_cases: list[Any], judge: OllamaModel) -> MetricScores
         "Faithfulness": "faithfulness",
         "Answer Relevancy": "answer_relevancy",
     }
-    scores: dict[str, list[float]] = {key: [] for key in name_to_key.values()}
 
+    per_question: list[MetricScores] = []
     for tr in result.test_results:
+        q_scores: dict[str, float] = {}
         for md in tr.metrics_data or []:
             key = name_to_key.get(md.name)
             if key:
-                scores[key].append(md.score or 0.0)
+                q_scores[key] = md.score or 0.0
 
-    def avg(lst: list[float]) -> float:
-        return sum(lst) / len(lst) if lst else 0.0
+        per_question.append(
+            MetricScores(
+                context_relevancy=q_scores.get("context_relevancy", 0.0),
+                faithfulness=q_scores.get("faithfulness", 0.0),
+                answer_relevancy=q_scores.get("answer_relevancy", 0.0),
+            )
+        )
 
-    return MetricScores(
-        context_relevancy=avg(scores["context_relevancy"]),
-        faithfulness=avg(scores["faithfulness"]),
-        answer_relevancy=avg(scores["answer_relevancy"]),
-    )
+    return per_question
 
 
 async def _build_test_cases(
     dataset: EvalDataset,
     config: EvalSettings,
     nresults: int,
-) -> list[Any]:
+) -> list[tuple[LLMTestCase, list[tuple[str, Metadata]]]]:
     col_name = config.collection_name(dataset.game)
-    test_cases: list[Any] = []
+    results: list[tuple[LLMTestCase, list[tuple[str, Metadata]]]] = []
 
     for q in dataset.questions:
         chunks = retrieve(col_name, q.question, nresults, cfg=config)
         context_str = build_context(chunks)
-        retrieval_context: list[Any] = [doc for doc, _ in chunks]
         answer = await rag_chain.ainvoke(
             {"game": dataset.game, "context": context_str, "input": q.question}
         )
-        test_cases.append(
-            LLMTestCase(
-                input=q.question,
-                actual_output=answer,
-                expected_output=q.expected_answer,
-                retrieval_context=retrieval_context,
-            )
+        test_case = LLMTestCase(
+            input=q.question,
+            actual_output=answer,
+            retrieval_context=[doc for doc, _ in chunks],
         )
+        results.append((test_case, chunks))
 
-    return test_cases
+    return results
 
 
 def rulebook_markdown_to_pages(rulebook_markdown: str) -> list[RulebookPage]:
@@ -147,20 +128,48 @@ async def run_evaluation(
         print(f"  Indexed {n_chunks} chunks → '{col_name}'")
 
         print(f"  Running {len(dataset.questions)} questions ...")
-        test_cases = await _build_test_cases(dataset, config, nresults)
+        test_case_pairs = await _build_test_cases(dataset, config, nresults)
+        test_cases = [tc for tc, _ in test_case_pairs]
 
         print("  Scoring with DeepEval ...")
-        scores = _score_test_cases(test_cases, judge)
+        per_question_scores = _score_test_cases(test_cases, judge)
+
+        def avg(vals: list[float]) -> float:
+            return sum(vals) / len(vals) if vals else 0.0
+
+        aggregate = MetricScores(
+            context_relevancy=avg([s.context_relevancy for s in per_question_scores]),
+            faithfulness=avg([s.faithfulness for s in per_question_scores]),
+            answer_relevancy=avg([s.answer_relevancy for s in per_question_scores]),
+        )
+
+        question_results = [
+            QuestionResult(
+                question=q.question,
+                actual_answer=tc.actual_output or "",
+                chunks=chunks,
+                scores=q_scores,
+                expected_answer=q.expected_answer,
+            )
+            for (tc, chunks), q_scores, q in zip(
+                test_case_pairs, per_question_scores, dataset.questions
+            )
+        ]
 
         results.append(
-            EvalResult(config=config, scores=scores, n_evaluated=len(test_cases))
+            EvalResult(
+                config=config,
+                scores=aggregate,
+                n_evaluated=len(test_cases),
+                question_results=question_results,
+            )
         )
 
         print(
-            f"  context_relevancy={scores.context_relevancy:.3f}  "
-            f"faithfulness={scores.faithfulness:.3f}  "
-            f"answer_relevancy={scores.answer_relevancy:.3f}  "
-            f"avg={scores.average:.3f}"
+            f"  context_relevancy={aggregate.context_relevancy:.3f}  "
+            f"faithfulness={aggregate.faithfulness:.3f}  "
+            f"answer_relevancy={aggregate.answer_relevancy:.3f}  "
+            f"avg={aggregate.average:.3f}"
         )
 
     return results
@@ -199,28 +208,3 @@ def print_comparison_table(results: list[EvalResult]) -> None:
             )
         )
     print()
-
-
-if __name__ == "__main__":
-    CONFIGS = [
-        EvalSettings(chunking_strategy="fixed_size"),
-        EvalSettings(chunking_strategy="hierarchical"),
-        EvalSettings(chunking_strategy="page"),
-    ]
-
-    dataset = EvalDataset.from_file(Path("evaldataset.json"))
-    rulebook_markdown = Path("eval_rulebook.md").read_text()
-
-    print(
-        f"\nEvaluating '{dataset.game}' — "
-        f"{len(CONFIGS)} config(s) × {len(dataset.questions)} question(s)"
-    )
-
-    results = asyncio.run(
-        run_evaluation(
-            dataset=dataset, configs=CONFIGS, rulebook_markdown=rulebook_markdown
-        )
-    )
-
-    print("\n=== Comparison Table ===")
-    print_comparison_table(results)

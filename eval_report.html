@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RAG Eval — Pandemic</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 32px;
+           max-width: 1100px; margin-inline: auto; color: #1e293b; background: #fff }
+    h1 { font-size: 1.5em; margin: 0 0 8px }
+    details > summary::-webkit-details-marker { display: none }
+  </style>
+</head>
+<body>
+  <h1>RAG Eval Report — Pandemic</h1>
+  <p style="color:#6b7280;margin:0 0 24px;font-size:0.9em">
+    3 config(s) · 1 question(s)
+  </p>
+  <h2 style="font-size:1em;font-weight:700;text-transform:uppercase;
+             letter-spacing:.05em;color:#6b7280;margin:0 0 12px">Summary</h2>
+  
+    <table style="width:100%;border-collapse:collapse;margin-bottom:32px;font-size:0.9em">
+      <thead>
+        <tr style="background:#f1f5f9;text-align:left">
+          <th style="padding:10px 12px;font-weight:600">Strategy</th>
+          <th style="padding:10px 12px;font-weight:600">Embedding</th>
+          <th style="padding:10px 12px;font-weight:600">Ctx Relevancy</th>
+          <th style="padding:10px 12px;font-weight:600">Faithfulness</th>
+          <th style="padding:10px 12px;font-weight:600">Ans Relevancy</th>
+          <th style="padding:10px 12px;font-weight:600">Avg</th>
+        </tr>
+      </thead>
+      <tbody><tr><td style='padding:8px 12px;font-weight:600'>fixed_size</td><td style='padding:8px 12px;color:#6b7280'>default</td><td style='padding:8px 12px'><span style="background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.250</span></td><td style='padding:8px 12px'><span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span></td><td style='padding:8px 12px'><span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span></td><td style='padding:8px 12px'><span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.750</span></td></tr><tr><td style='padding:8px 12px;font-weight:600'>hierarchical</td><td style='padding:8px 12px;color:#6b7280'>default</td><td style='padding:8px 12px'><span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.606</span></td><td style='padding:8px 12px'><span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span></td><td style='padding:8px 12px'><span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.667</span></td><td style='padding:8px 12px'><span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.758</span></td></tr><tr><td style='padding:8px 12px;font-weight:600'>page</td><td style='padding:8px 12px;color:#6b7280'>default</td><td style='padding:8px 12px'><span style="background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.064</span></td><td style='padding:8px 12px'><span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span></td><td style='padding:8px 12px'><span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.667</span></td><td style='padding:8px 12px'><span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.577</span></td></tr></tbody>
+    </table>
+  <h2 style="font-size:1em;font-weight:700;text-transform:uppercase;
+             letter-spacing:.05em;color:#6b7280;margin:0 0 16px">Results by Config</h2>
+  
+    <section style="margin-bottom:40px">
+      <h2 style="font-size:1.1em;font-weight:700;margin:0 0 12px;
+                 padding-bottom:8px;border-bottom:2px solid #e2e8f0">
+        fixed_size / default
+        <span style="font-weight:400;font-size:0.85em;color:#6b7280;margin-left:8px">
+          (1 questions · fixed_size chunks)
+        </span>
+      </h2>
+      <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Ctx Relevancy</div>
+          <span style="background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.250</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Faithfulness</div>
+          <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Ans Relevancy</div>
+          <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Average</div>
+          <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.750</span>
+        </div>
+      </div>
+      
+    <details style="margin-bottom:12px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+      <summary style="padding:12px 16px;cursor:pointer;background:#f1f5f9;
+                      display:flex;align-items:center;gap:12px;list-style:none">
+        <span style="font-weight:600;flex:1">Q1. How many disease cubes of each color are in the game?</span>
+        <span style="background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.250</span>
+        <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+        <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+      </summary>
+      <div style="padding:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div>
+            <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                        text-transform:uppercase;margin-bottom:4px">Expected</div>
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;
+                        padding:10px 14px;font-size:0.9em">There are 24 disease cubes of each color (96 total).</div>
+          </div>
+          <div>
+            <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                        text-transform:uppercase;margin-bottom:4px">Actual</div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;
+                        padding:10px 14px;font-size:0.9em">There are 96 disease cubes in total, with 24 cubes each in blue, yellow, black, and red (p. 2).</div>
+          </div>
+        </div>
+        <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                    text-transform:uppercase;margin-bottom:8px">
+          Retrieved chunks (5)
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.5</span> This passage outlines the Infection Phase, detailing how players infect cities with disease cubes based on the current infection rate and handle outbreaks when cities already have three cubes.
+
+## Infection Phase
+
+After drawing player cards, infect cities. Draw infection cards equal to the current infection rate (shown on the track: 2, 2, 2, 3, 3, 4, 4).
+
+Place one disease cube of the matching color on each city drawn. If a city already has 3 disease cubes of that color when it would receive another, an outbreak occurs instead.
+
+### Outbreaks</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.7</span> This passage outlines the unique abilities of the Medic, Scientist, and Researcher roles in the board game, detailing their specific actions regarding disease cubes, card requirements, and curing mechanisms, which are critical for understanding how to apply rules when managing diseases in gameplay.
+
+## Role Abilities
+
+### Medic
+
+The Medic removes **all** disease cubes of one color when treating a disease, using only 1 action. When a disease is cured, the Medic automatically removes all cubes of that color in any city they enter or are already in.
+
+### Scientist
+
+The Scientist needs only **4** cards of the same color (instead of 5) to discover a cure.
+
+### Researcher</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.2</span> This chunk outlines the game&#x27;s core components and setup, including the required items for managing the game&#x27;s mechanics (e.g., disease cubes, infection cards, and markers), which are essential for answering rules questions about player interactions and game progression.
+
+## Components
+
+- 1 game board
+- 7 role cards and matching pawns
+- 6 research station markers
+- 96 disease cubes (24 each in blue, yellow, black, and red)
+- 48 infection cards
+- 4 reference cards
+- 59 player cards (48 city cards, 6 epidemic cards, 5 event cards)
+- 4 cure markers and 1 eradication marker
+- 1 infection rate marker
+- 1 outbreak marker
+
+
+## Setup
+
+Place the board in the center of the table. Each player draws a role card and takes the corresponding pawn.</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.1</span> This passage outlines the components of the Pandemic board game, detailing the essential items required for gameplay, such as the disease cube supply, player card deck, and other critical elements, which are foundational for understanding the game&#x27;s mechanics and setup.
+
+# Pandemic Rulebook
+
+## Overview
+
+In Pandemic, two to four players work together as members of a disease control team. The goal is to discover cures for four deadly diseases before they spread out of control. Players lose if too many outbreaks occur, if the disease cube supply runs out, or if the player card deck is exhausted.
+
+## Components</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.7</span> This section outlines the conditions under which players lose, including when decks run out, outbreaks occur, or disease cubes are needed but unavailable. The Medic role ability provides special rules for handling these scenarios, ensuring players must act strategically to avoid losing.
+
+### Losing
+
+Players lose immediately if any of the following occur:
+- The player card deck runs out and a player needs to draw.
+- The outbreak marker reaches the last space (8 outbreaks).
+- A disease cube must be placed but there are no cubes of that color remaining in the supply.
+
+
+## Role Abilities
+
+### Medic</div>
+      </div>
+    </details>
+    </section>
+    <section style="margin-bottom:40px">
+      <h2 style="font-size:1.1em;font-weight:700;margin:0 0 12px;
+                 padding-bottom:8px;border-bottom:2px solid #e2e8f0">
+        hierarchical / default
+        <span style="font-weight:400;font-size:0.85em;color:#6b7280;margin-left:8px">
+          (1 questions · hierarchical chunks)
+        </span>
+      </h2>
+      <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Ctx Relevancy</div>
+          <span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.606</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Faithfulness</div>
+          <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Ans Relevancy</div>
+          <span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.667</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Average</div>
+          <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.758</span>
+        </div>
+      </div>
+      
+    <details style="margin-bottom:12px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+      <summary style="padding:12px 16px;cursor:pointer;background:#f1f5f9;
+                      display:flex;align-items:center;gap:12px;list-style:none">
+        <span style="font-weight:600;flex:1">Q1. How many disease cubes of each color are in the game?</span>
+        <span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.606</span>
+        <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+        <span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.667</span>
+      </summary>
+      <div style="padding:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div>
+            <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                        text-transform:uppercase;margin-bottom:4px">Expected</div>
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;
+                        padding:10px 14px;font-size:0.9em">There are 24 disease cubes of each color (96 total).</div>
+          </div>
+          <div>
+            <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                        text-transform:uppercase;margin-bottom:4px">Actual</div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;
+                        padding:10px 14px;font-size:0.9em">There are 96 disease cubes in total, with 24 of each color: blue, yellow, black, and red (p. 2).</div>
+          </div>
+        </div>
+        <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                    text-transform:uppercase;margin-bottom:8px">
+          Retrieved chunks (5)
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.7</span> This passage outlines the win and lose conditions in *Pandemic*, detailing how players win immediately when all four diseases are cured and lose immediately if the player deck runs out, an outbreak marker reaches the last space, or a color&#x27;s cube is unavailable.
+
+## Win and Lose Conditions  
+### Winning  
+Players win immediately when all 4 diseases are cured, regardless of how many disease cubes remain on the board or how many eradications have occurred.  
+### Losing  
+Players lose immediately if any of the following occur:
+- The player card deck runs out and a player needs to draw.
+- The outbreak marker reaches the last space (8 outbreaks).
+- A disease cube must be placed but there are no cubes of that color remaining in the supply.</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.5</span> This passage outlines the Infection Phase rules, detailing how cities are infected and outbreaks are handled by specifying the process of drawing infection cards, placing disease cubes, and resolving conflicts when cities already have three cubes.
+
+## Infection Phase  
+After drawing player cards, infect cities. Draw infection cards equal to the current infection rate (shown on the track: 2, 2, 2, 3, 3, 4, 4).  
+Place one disease cube of the matching color on each city drawn. If a city already has 3 disease cubes of that color when it would receive another, an outbreak occurs instead.  
+### Outbreaks  
+When a city already has 3 disease cubes of one color and would receive another cube:
+- Do not place a cube in that city.</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.2</span> This chunk details the core components of the Pandemic board game, including the disease cubes, research stations, and player cards, which are essential for gameplay mechanics like infection management, research, and strategy.
+
+## Components  
+- 1 game board
+- 7 role cards and matching pawns
+- 6 research station markers
+- 96 disease cubes (24 each in blue, yellow, black, and red)
+- 48 infection cards
+- 4 reference cards
+- 59 player cards (48 city cards, 6 epidemic cards, 5 event cards)
+- 4 cure markers and 1 eradication marker
+- 1 infection rate marker
+- 1 outbreak marker</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.7</span> This passage outlines the Medic&#x27;s ability to remove all disease cubes of one color (1 action) and the Scientist&#x27;s modified requirement (4 cards instead of 5) for discovering cures, offering essential rules for gameplay decisions.
+
+## Role Abilities  
+### Medic  
+The Medic removes **all** disease cubes of one color when treating a disease, using only 1 action. When a disease is cured, the Medic automatically removes all cubes of that color in any city they enter or are already in.  
+### Scientist  
+The Scientist needs only **4** cards of the same color (instead of 5) to discover a cure.  
+### Researcher</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.3</span> This passage outlines the core mechanics of the game, including building research stations, treating diseases, sharing knowledge, and discovering cures, which are essential for managing cities and resolving outbreaks in the Pandemic board game.
+
+**Build a Research Station** — Discard the card matching your current city to build a research station there.  
+**Treat Disease** — Remove one disease cube of any color from your current city. If a disease has been cured, remove all cubes of that color from the city instead.  
+**Share Knowledge** — Give or take a city card from another player in the same city. Both players must agree.  
+**Discover a Cure** — At a research station, discard 5 cards of the same color to cure the disease of that color.</div>
+      </div>
+    </details>
+    </section>
+    <section style="margin-bottom:40px">
+      <h2 style="font-size:1.1em;font-weight:700;margin:0 0 12px;
+                 padding-bottom:8px;border-bottom:2px solid #e2e8f0">
+        page / default
+        <span style="font-weight:400;font-size:0.85em;color:#6b7280;margin-left:8px">
+          (1 questions · page chunks)
+        </span>
+      </h2>
+      <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Ctx Relevancy</div>
+          <span style="background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.064</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Faithfulness</div>
+          <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Ans Relevancy</div>
+          <span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.667</span>
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+                    padding:12px 20px;text-align:center">
+          <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
+                      font-weight:600;margin-bottom:4px">Average</div>
+          <span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.577</span>
+        </div>
+      </div>
+      
+    <details style="margin-bottom:12px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+      <summary style="padding:12px 16px;cursor:pointer;background:#f1f5f9;
+                      display:flex;align-items:center;gap:12px;list-style:none">
+        <span style="font-weight:600;flex:1">Q1. How many disease cubes of each color are in the game?</span>
+        <span style="background:#ef4444;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.064</span>
+        <span style="background:#22c55e;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">1.000</span>
+        <span style="background:#f59e0b;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.8em;font-weight:600">0.667</span>
+      </summary>
+      <div style="padding:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div>
+            <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                        text-transform:uppercase;margin-bottom:4px">Expected</div>
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;
+                        padding:10px 14px;font-size:0.9em">There are 24 disease cubes of each color (96 total).</div>
+          </div>
+          <div>
+            <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                        text-transform:uppercase;margin-bottom:4px">Actual</div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;
+                        padding:10px 14px;font-size:0.9em">The game includes 96 disease cubes, with 24 of each color: blue, yellow, black, and red (p. 1).</div>
+          </div>
+        </div>
+        <div style="font-size:0.75em;font-weight:600;color:#6b7280;
+                    text-transform:uppercase;margin-bottom:8px">
+          Retrieved chunks (5)
+        </div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.6</span> This passage outlines the win and lose conditions for the board game, specifying that players win immediately when all four diseases are cured and lose immediately if the player card deck runs out, an outbreak marker reaches the last space (8 outbreaks), or a disease cube of a required color is unavailable.
+
+## Win and Lose Conditions
+
+### Winning
+
+Players win immediately when all 4 diseases are cured, regardless of how many disease cubes remain on the board or how many eradications have occurred.
+
+### Losing
+
+Players lose immediately if any of the following occur:
+- The player card deck runs out and a player needs to draw.
+- The outbreak marker reaches the last space (8 outbreaks).
+- A disease cube must be placed but there are no cubes of that color remaining in the supply.</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.5</span> This passage outlines the infection phase rules, including how cities are infected, outbreaks, and the consequences of exceeding the track&#x27;s limit, making it essential for understanding disease spread and player strategy in the game.
+
+## Infection Phase
+
+After drawing player cards, infect cities. Draw infection cards equal to the current infection rate (shown on the track: 2, 2, 2, 3, 3, 4, 4).
+
+Place one disease cube of the matching color on each city drawn. If a city already has 3 disease cubes of that color when it would receive another, an outbreak occurs instead.
+
+### Outbreaks
+
+When a city already has 3 disease cubes of one color and would receive another cube:
+- Do not place a cube in that city.
+- Move the outbreak marker one space forward on the track.
+- Place one cube of that color in each city connected to the outbreak city.
+
+If any connected city also already has 3 cubes, a chain reaction outbreak occurs — that city also triggers an outbreak (but cities that already triggered outbreaks this turn do not trigger a second time).
+
+If the outbreak marker reaches the last space on the track (8 outbreaks), the players immediately lose.</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.1</span> This passage outlines the core components of the Pandemic game, including the board, markers, cards, and player items, providing essential information for understanding the game&#x27;s mechanics and how players interact with the board and resources.
+
+# Pandemic Rulebook
+
+## Overview
+
+In Pandemic, two to four players work together as members of a disease control team. The goal is to discover cures for four deadly diseases before they spread out of control. Players lose if too many outbreaks occur, if the disease cube supply runs out, or if the player card deck is exhausted.
+
+## Components
+
+- 1 game board
+- 7 role cards and matching pawns
+- 6 research station markers
+- 96 disease cubes (24 each in blue, yellow, black, and red)
+- 48 infection cards
+- 4 reference cards
+- 59 player cards (48 city cards, 6 epidemic cards, 5 event cards)
+- 4 cure markers and 1 eradication marker
+- 1 infection rate marker
+- 1 outbreak marker</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.7</span> This passage outlines the unique abilities of each role in the board game, detailing how they interact with the game&#x27;s mechanics, such as removing disease cubes, discovering cures, and managing city cards, which are critical for answering rules questions about gameplay strategies.
+
+## Role Abilities
+
+### Medic
+
+The Medic removes **all** disease cubes of one color when treating a disease, using only 1 action. When a disease is cured, the Medic automatically removes all cubes of that color in any city they enter or are already in.
+
+### Scientist
+
+The Scientist needs only **4** cards of the same color (instead of 5) to discover a cure.
+
+### Researcher
+
+The Researcher may give any city card to another player in the same city during the Share Knowledge action — the card does not need to match the current city.
+
+### Operations Expert
+
+The Operations Expert may build a research station in their current city without discarding the matching city card. Once per turn, they may move from a research station to any city by discarding any city card.
+
+### Dispatcher
+
+The Dispatcher may move any other player&#x27;s pawn to a city containing another pawn as an action. The Dispatcher may also spend their actions to move another player&#x27;s pawn as if it were their own.
+
+### Quarantine Specialist
+
+The Quarantine Specialist prevents disease cube placement and outbreaks in the city they are currently in **and all cities directly connected to it**.
+
+### Contingency Planner
+
+The Contingency Planner may take any event card from the infection discard pile and store it on their role card. There is no hand limit for the stored card, and it can be played at any time. When used, the card is removed from the game.</div><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:8px;font-size:0.82em;white-space:pre-wrap;font-family:monospace"><span style="font-size:0.75em;color:#6b7280">p.4</span> This passage explains the Epidemic Procedure, a critical rule for handling player card draws and managing infection in the game, which is essential for understanding how the infection deck and player card deck interact during gameplay.
+
+## Drawing Player Cards
+
+After taking your 4 actions, draw 2 player cards from the top of the player deck. If you draw an epidemic card, follow the epidemic procedure immediately.
+
+### Epidemic Procedure
+
+1. **Increase** — Move the infection rate marker one space to the right.
+2. **Infect** — Draw the bottom card of the infection deck and place 3 disease cubes on that city.
+3. **Intensify** — Shuffle the infection discard pile and place it on top of the infection deck.
+
+If the player card deck runs out and you need to draw, the players immediately lose the game.</div>
+      </div>
+    </details>
+    </section>
+</body>
+</html>
