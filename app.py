@@ -1,9 +1,17 @@
+import re
 from pathlib import Path
 
 import chainlit as cl
+from chromadb.api.types import Metadata
 
-from rag_pipeline.chain import chain
-from rag_pipeline.indexer import index_game, is_game_indexed, list_indexed_games
+from rag_pipeline import (
+    build_context,
+    chain,
+    index_game,
+    is_game_indexed,
+    list_indexed_games,
+    retrieve,
+)
 
 
 @cl.on_chat_start
@@ -62,6 +70,28 @@ async def on_chat_start():
     await msg.update()
 
 
+def _build_source_elements(chunks: list[tuple[str, Metadata]]) -> list[cl.Text]:
+    elements = []
+
+    for i, (doc, meta) in enumerate(chunks):
+        name = f"p. {meta.get('page', '')}" if meta.get("page") else f"excerpt {i + 1}"
+        raw_content = str(meta.get("content")).strip()
+        parsed_content = _strip_images_from_content(raw_content)
+        if parsed_content:
+            elements.append(cl.Text(name=name, content=parsed_content, display="page"))
+
+    return elements
+
+
+def _strip_images_from_content(content: str) -> str:
+    return re.sub(
+        r"!\[.*?\]\(.*?\.(png|jpe?g|gif|webp|svg|bmp|tiff?)\)",
+        "",
+        content,
+        flags=re.IGNORECASE,
+    )
+
+
 @cl.on_message
 async def on_message(message: cl.Message):
     game = cl.user_session.get("game")
@@ -69,10 +99,16 @@ async def on_message(message: cl.Message):
         await cl.Message(content="Please restart the chat to select a game.").send()
         return
 
-    msg = cl.Message(content="")
+    chunks = retrieve(game, message.content)
+    source_elements = _build_source_elements(chunks)
+    context = build_context(chunks)
+
+    msg = cl.Message(content="", elements=source_elements)
     await msg.send()
 
-    async for token in chain.astream({"input": message.content}):
+    async for token in chain.astream(
+        {"input": message.content, "context": context, "game": game}
+    ):
         await msg.stream_token(token)
 
     await msg.update()

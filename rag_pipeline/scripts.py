@@ -1,5 +1,5 @@
-from chainlit.cli import run_chainlit
+import subprocess
 
 
 def dev():
-    run_chainlit("app.py")
+    subprocess.run(["chainlit", "run", "app.py", "--watch"], check=True)
