@@ -9,7 +9,9 @@ class EvalSettings(RAGSettings):
 
     def collection_name(self, game: str) -> str:
         safe_emb = self.embedding_model.replace(":", "_").replace("/", "_")
-        return f"eval__{game}__{self.chunking_strategy}__{safe_emb}"[:100]
+        enriched = "ctx" if self.chunk_context_enrichment else "plain"
+        return f"eval__{game}__{self.chunking_strategy}__{enriched}__{safe_emb}"[:100]
 
     def label(self) -> str:
-        return f"{self.chunking_strategy} / {self.embedding_model}"
+        enriched = "+context" if self.chunk_context_enrichment else ""
+        return f"{self.chunking_strategy}{enriched} / {self.embedding_model}"

@@ -12,6 +12,7 @@ class MetricScores:
     answer_relevancy: float
     context_relevancy: float
     faithfulness: float
+    reasons: dict[str, str] = field(default_factory=dict)
 
     @property
     def average(self) -> float:

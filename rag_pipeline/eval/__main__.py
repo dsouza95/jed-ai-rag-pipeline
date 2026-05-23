@@ -10,9 +10,9 @@ from rag_pipeline.eval.runner import print_comparison_table, run_evaluation
 from rag_pipeline.eval.settings import EvalSettings
 
 CONFIGS = [
-    EvalSettings(chunking_strategy="fixed_size"),
-    EvalSettings(chunking_strategy="hierarchical"),
-    EvalSettings(chunking_strategy="page"),
+    EvalSettings(chunking_strategy="fixed_size", chunk_context_enrichment=False),
+    EvalSettings(chunking_strategy="fixed_size", chunk_context_enrichment=True),
+    EvalSettings(chunking_strategy="hierarchical", chunk_context_enrichment=True),
 ]
 
 dataset = EvalDataset.from_file(Path("eval_dataset.json"))

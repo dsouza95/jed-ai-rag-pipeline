@@ -42,8 +42,31 @@ def _render_chunk(doc: str, meta: dict) -> str:
     )
 
 
+def _render_reasons(scores) -> str:
+    labels = {
+        "context_relevancy": "Ctx Relevancy",
+        "faithfulness": "Faithfulness",
+        "answer_relevancy": "Ans Relevancy",
+    }
+    if not scores.reasons:
+        return ""
+    items = "".join(
+        f'<div style="margin-bottom:6px">'
+        f'<span style="font-weight:600;font-size:0.8em">{labels[k]}:</span> '
+        f'<span style="font-size:0.85em;color:#374151">{html.escape(v)}</span>'
+        f"</div>"
+        for k, v in scores.reasons.items()
+        if k in labels
+    )
+    return (
+        f'<div style="background:#fafafa;border:1px solid #e2e8f0;border-radius:6px;'
+        f'padding:10px 14px;margin-bottom:16px">{items}</div>'
+    )
+
+
 def _render_question_result(idx: int, result) -> str:
     chunks_html = "".join(_render_chunk(doc, dict(meta)) for doc, meta in result.chunks)
+    reasons_html = _render_reasons(result.scores)
     return f"""
     <details style="margin-bottom:12px;
         border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
@@ -80,6 +103,7 @@ def _render_question_result(idx: int, result) -> str:
                     text-transform:uppercase;margin-bottom:8px">
           Retrieved chunks ({len(result.chunks)})
         </div>
+        {reasons_html}
         {chunks_html}
       </div>
     </details>"""

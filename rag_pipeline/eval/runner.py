@@ -12,6 +12,7 @@ from deepeval.models import OllamaModel
 from deepeval.test_case import LLMTestCase
 
 from rag_pipeline.chain import chain as rag_chain
+from rag_pipeline.db import make_vector_db_client
 from rag_pipeline.eval.dataset import EvalDataset
 from rag_pipeline.eval.settings import EvalSettings
 from rag_pipeline.eval.types import EvalResult, MetricScores, QuestionResult
@@ -46,16 +47,19 @@ def _score_test_cases(
     per_question: list[MetricScores] = []
     for tr in result.test_results:
         q_scores: dict[str, float] = {}
+        q_reasons: dict[str, str] = {}
         for md in tr.metrics_data or []:
             key = name_to_key.get(md.name)
             if key:
                 q_scores[key] = md.score or 0.0
+                q_reasons[key] = md.reason or md.error or ""
 
         per_question.append(
             MetricScores(
                 context_relevancy=q_scores.get("context_relevancy", 0.0),
                 faithfulness=q_scores.get("faithfulness", 0.0),
                 answer_relevancy=q_scores.get("answer_relevancy", 0.0),
+                reasons=q_reasons,
             )
         )
 
@@ -102,6 +106,12 @@ def rulebook_markdown_to_pages(rulebook_markdown: str) -> list[RulebookPage]:
     return pages
 
 
+def _clear_eval_collections(cfg: EvalSettings) -> None:
+    db = make_vector_db_client(cfg.vector_persist_path)
+    for col in db.list_collections():
+        db.delete_collection(col.name)
+
+
 async def run_evaluation(
     dataset: EvalDataset,
     configs: list[EvalSettings],
@@ -109,6 +119,9 @@ async def run_evaluation(
     nresults: int = 5,
 ) -> list[EvalResult]:
     results: list[EvalResult] = []
+
+    if configs:
+        _clear_eval_collections(configs[0])
 
     for config in configs:
         judge = OllamaModel(config.eval_judge_model, timeout=300)

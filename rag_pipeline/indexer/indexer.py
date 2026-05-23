@@ -10,7 +10,6 @@ from llama_cloud import AsyncLlamaCloud
 from llama_cloud.types.parsing_get_response import MarkdownPageMarkdownResultPage
 
 from rag_pipeline.chunking import get_chunker
-from rag_pipeline.chunking.page import PageChunker
 from rag_pipeline.db import make_vector_db_client
 from rag_pipeline.embedding import get_embedding_function
 from rag_pipeline.indexer.context_chain import chain
@@ -111,14 +110,14 @@ async def index_game(
     collection = _create_collection(collection_name, cfg)
 
     chunker = get_chunker(cfg.chunking_strategy)
-    if isinstance(chunker, PageChunker):
-        chunks = chunker.split(pages)
-    else:
-        markdown = _build_full_markdown(pages)
-        chunks = chunker.split(markdown)
-        _assign_page_to_chunks(chunks, first_page_num=pages[0].page_number)
+    markdown = _build_full_markdown(pages)
+    chunks = chunker.split(markdown)
+    _assign_page_to_chunks(chunks, first_page_num=pages[0].page_number)
 
-    chunks = await _enrich_chunks(chunks, game_name, on_progress)
+    if cfg.chunk_context_enrichment:
+        chunks = await _enrich_chunks(chunks, game_name, on_progress)
+    else:
+        chunks = [c for c in chunks if c.page_content]
     collection.add(
         ids=[str(uuid.uuid4()) for _ in chunks],
         documents=[c.page_content for c in chunks],
