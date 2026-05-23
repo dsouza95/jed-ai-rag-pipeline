@@ -5,7 +5,7 @@ from deepeval import evaluate
 from deepeval.evaluate.configs import AsyncConfig, DisplayConfig
 from deepeval.metrics import (
     AnswerRelevancyMetric,
-    ContextualRelevancyMetric,
+    ContextualPrecisionMetric,
     FaithfulnessMetric,
 )
 from deepeval.models import OllamaModel
@@ -26,7 +26,7 @@ def _score_test_cases(
 ) -> list[MetricScores]:
     metric_args = {"model": judge, "async_mode": False, "threshold": 0.0}
     metrics = [
-        ContextualRelevancyMetric(**metric_args),
+        ContextualPrecisionMetric(**metric_args),
         FaithfulnessMetric(**metric_args),
         AnswerRelevancyMetric(**metric_args),
     ]
@@ -39,7 +39,7 @@ def _score_test_cases(
     )
 
     name_to_key = {
-        "Contextual Relevancy": "context_relevancy",
+        "Contextual Precision": "context_relevancy",
         "Faithfulness": "faithfulness",
         "Answer Relevancy": "answer_relevancy",
     }
@@ -83,6 +83,7 @@ async def _build_test_cases(
         test_case = LLMTestCase(
             input=q.question,
             actual_output=answer,
+            expected_output=q.expected_answer,
             retrieval_context=[doc for doc, _ in chunks],
         )
         results.append((test_case, chunks))

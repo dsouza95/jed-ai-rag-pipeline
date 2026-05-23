@@ -44,7 +44,7 @@ def _render_chunk(doc: str, meta: dict) -> str:
 
 def _render_reasons(scores) -> str:
     labels = {
-        "context_relevancy": "Ctx Relevancy",
+        "context_relevancy": "Ctx Precision",
         "faithfulness": "Faithfulness",
         "answer_relevancy": "Ans Relevancy",
     }

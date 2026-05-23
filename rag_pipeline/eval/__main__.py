@@ -12,6 +12,12 @@ from rag_pipeline.eval.settings import EvalSettings
 CONFIGS = [
     EvalSettings(chunking_strategy="fixed_size", chunk_context_enrichment=False),
     EvalSettings(chunking_strategy="fixed_size", chunk_context_enrichment=True),
+    EvalSettings(
+        chunking_strategy="fixed_size",
+        chunk_context_enrichment=True,
+        chunk_size=256,
+        chunk_overlap=32,
+    ),
     EvalSettings(chunking_strategy="hierarchical", chunk_context_enrichment=True),
 ]
 
@@ -25,7 +31,10 @@ print(
 
 results = asyncio.run(
     run_evaluation(
-        dataset=dataset, configs=CONFIGS, rulebook_markdown=rulebook_markdown
+        dataset=dataset,
+        configs=CONFIGS,
+        rulebook_markdown=rulebook_markdown,
+        nresults=3,
     )
 )
 
