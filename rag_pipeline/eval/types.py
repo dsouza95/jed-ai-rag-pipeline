@@ -10,13 +10,15 @@ from rag_pipeline.eval.settings import EvalSettings
 @dataclass
 class MetricScores:
     answer_relevancy: float
-    context_relevancy: float
+    contextual_precision: float
     faithfulness: float
     reasons: dict[str, str] = field(default_factory=dict)
 
     @property
     def average(self) -> float:
-        return (self.context_relevancy + self.faithfulness + self.answer_relevancy) / 3
+        return (
+            self.contextual_precision + self.faithfulness + self.answer_relevancy
+        ) / 3
 
 
 @dataclass

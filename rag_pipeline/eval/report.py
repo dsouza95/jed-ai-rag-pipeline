@@ -21,7 +21,7 @@ def _score_badge(score: float) -> str:
 
 def _scores_row(scores: MetricScores) -> str:
     return (
-        f"<td>{_score_badge(scores.context_relevancy)}</td>"
+        f"<td>{_score_badge(scores.contextual_precision)}</td>"
         f"<td>{_score_badge(scores.faithfulness)}</td>"
         f"<td>{_score_badge(scores.answer_relevancy)}</td>"
         f"<td>{_score_badge(scores.average)}</td>"
@@ -44,7 +44,7 @@ def _render_chunk(doc: str, meta: dict) -> str:
 
 def _render_reasons(scores) -> str:
     labels = {
-        "context_relevancy": "Ctx Precision",
+        "contextual_precision": "Ctx Precision",
         "faithfulness": "Faithfulness",
         "answer_relevancy": "Ans Relevancy",
     }
@@ -75,7 +75,7 @@ def _render_question_result(idx: int, result) -> str:
         <span style="font-weight:600;flex:1">
             Q{idx}. {html.escape(result.question)}
         </span>
-        {_score_badge(result.scores.context_relevancy)}
+        {_score_badge(result.scores.contextual_precision)}
         {_score_badge(result.scores.faithfulness)}
         {_score_badge(result.scores.answer_relevancy)}
       </summary>
@@ -129,7 +129,7 @@ def _render_config_section(result: EvalResult) -> str:
                     padding:12px 20px;text-align:center">
           <div style="font-size:0.7em;color:#6b7280;text-transform:uppercase;
                       font-weight:600;margin-bottom:4px">Ctx Relevancy</div>
-          {_score_badge(s.context_relevancy)}
+          {_score_badge(s.contextual_precision)}
         </div>
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
                     padding:12px 20px;text-align:center">
@@ -166,7 +166,7 @@ def _render_summary_table(results: list[EvalResult]) -> str:
             f"""<td style='padding:8px 12px;color:#6b7280'>
                 {html.escape(r.config.embedding_model)}
             </td>"""
-            f"<td style='padding:8px 12px'>{_score_badge(s.context_relevancy)}</td>"
+            f"<td style='padding:8px 12px'>{_score_badge(s.contextual_precision)}</td>"
             f"<td style='padding:8px 12px'>{_score_badge(s.faithfulness)}</td>"
             f"<td style='padding:8px 12px'>{_score_badge(s.answer_relevancy)}</td>"
             f"<td style='padding:8px 12px'>{_score_badge(s.average)}</td>"

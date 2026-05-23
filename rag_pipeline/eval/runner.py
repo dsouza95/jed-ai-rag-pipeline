@@ -39,7 +39,7 @@ def _score_test_cases(
     )
 
     name_to_key = {
-        "Contextual Precision": "context_relevancy",
+        "Contextual Precision": "contextual_precision",
         "Faithfulness": "faithfulness",
         "Answer Relevancy": "answer_relevancy",
     }
@@ -56,7 +56,7 @@ def _score_test_cases(
 
         per_question.append(
             MetricScores(
-                context_relevancy=q_scores.get("context_relevancy", 0.0),
+                contextual_precision=q_scores.get("contextual_precision", 0.0),
                 faithfulness=q_scores.get("faithfulness", 0.0),
                 answer_relevancy=q_scores.get("answer_relevancy", 0.0),
                 reasons=q_reasons,
@@ -152,7 +152,9 @@ async def run_evaluation(
             return sum(vals) / len(vals) if vals else 0.0
 
         aggregate = MetricScores(
-            context_relevancy=avg([s.context_relevancy for s in per_question_scores]),
+            contextual_precision=avg(
+                [s.contextual_precision for s in per_question_scores]
+            ),
             faithfulness=avg([s.faithfulness for s in per_question_scores]),
             answer_relevancy=avg([s.answer_relevancy for s in per_question_scores]),
         )
@@ -180,7 +182,7 @@ async def run_evaluation(
         )
 
         print(
-            f"  context_relevancy={aggregate.context_relevancy:.3f}  "
+            f"  contextual_precision={aggregate.contextual_precision:.3f}  "
             f"faithfulness={aggregate.faithfulness:.3f}  "
             f"answer_relevancy={aggregate.answer_relevancy:.3f}  "
             f"avg={aggregate.average:.3f}"
@@ -214,7 +216,7 @@ def print_comparison_table(results: list[EvalResult]) -> None:
                 [
                     r.config.chunking_strategy,
                     r.config.embedding_model,
-                    f"{s.context_relevancy:.3f}",
+                    f"{s.contextual_precision:.3f}",
                     f"{s.faithfulness:.3f}",
                     f"{s.answer_relevancy:.3f}",
                     f"{s.average:.3f}",

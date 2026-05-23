@@ -109,7 +109,7 @@ async def index_game(
     _maybe_reset_collection(collection_name, cfg)
     collection = _create_collection(collection_name, cfg)
 
-    chunker = get_chunker(cfg.chunking_strategy)
+    chunker = get_chunker(cfg.chunking_strategy, cfg)
     markdown = _build_full_markdown(pages)
     chunks = chunker.split(markdown)
     _assign_page_to_chunks(chunks, first_page_num=pages[0].page_number)
