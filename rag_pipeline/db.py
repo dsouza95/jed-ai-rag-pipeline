@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import chromadb
+from chromadb.api import ClientAPI
 
-from rag_pipeline.settings import settings
 
-
-def make_vector_db_client():
-    return chromadb.PersistentClient(settings.vector_persist_path)
+def make_vector_db_client(path: Path) -> ClientAPI:
+    return chromadb.PersistentClient(path)

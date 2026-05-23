@@ -1,8 +1,11 @@
 __pycache__
 .chainlit
 .chroma
+.chroma_eval
+.deepeval
 *.egg-info
 .envrc
+.DS_Store
 .files
 .rulebooks
 .venv

@@ -1,0 +1,55 @@
+{
+  "game": "Pandemic",
+  "questions": [
+    {
+      "question": "How many disease cubes of each color are in the game?",
+      "expected_answer": "There are 24 disease cubes of each color (96 total).",
+      "tags": ["components", "setup"]
+    },
+    {
+      "question": "How many cards does each player draw at the end of their turn?",
+      "expected_answer": "Each player draws 2 Player cards at the end of their turn.",
+      "tags": ["turn structure", "player cards"]
+    },
+    {
+      "question": "What happens when the player card deck runs out?",
+      "expected_answer": "The players immediately lose the game if the player card deck runs out.",
+      "tags": ["lose condition"]
+    },
+    {
+      "question": "How many actions can a player take on their turn?",
+      "expected_answer": "A player can take up to 4 actions on their turn.",
+      "tags": ["turn structure", "actions"]
+    },
+    {
+      "question": "What is an outbreak and what triggers one?",
+      "expected_answer": "An outbreak occurs when a city already has 3 disease cubes of one color and would receive another. The cube is not placed; instead, a cube is placed in each connected city.",
+      "tags": ["outbreaks", "disease"]
+    },
+    {
+      "question": "How do players win the game?",
+      "expected_answer": "Players win by discovering cures for all 4 diseases.",
+      "tags": ["win condition"]
+    },
+    {
+      "question": "How many Epidemic cards are shuffled into the player deck in the standard game?",
+      "expected_answer": "4 Epidemic cards are used in the introductory game, 5 in the standard game, and 6 in the heroic game.",
+      "tags": ["setup", "epidemic"]
+    },
+    {
+      "question": "What is the Dispatcher role's special ability?",
+      "expected_answer": "The Dispatcher may move any pawn to a city containing another pawn, and may move another player's pawn as if it were their own.",
+      "tags": ["roles", "dispatcher"]
+    },
+    {
+      "question": "When does a quarantine specialist prevent disease placement?",
+      "expected_answer": "The Quarantine Specialist prevents disease cube placement and outbreaks in the city they are in and all cities connected to it.",
+      "tags": ["roles", "quarantine specialist"]
+    },
+    {
+      "question": "How many research stations can be on the board at one time?",
+      "expected_answer": "There can be at most 6 research stations on the board at one time.",
+      "tags": ["research stations", "components"]
+    }
+  ]
+}
