@@ -1,5 +1,5 @@
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_ollama import ChatOllama
 
 from rag_pipeline.settings import settings
@@ -15,6 +15,7 @@ prompt = ChatPromptTemplate.from_messages(
             "If the answer cannot be determined from the provided excerpts, "
             "say so clearly rather than guessing.",
         ),
+        MessagesPlaceholder("chat_history"),
         (
             "human",
             "{context}\n\n<question>{input}</question>",

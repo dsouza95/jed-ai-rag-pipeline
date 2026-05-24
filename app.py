@@ -3,6 +3,7 @@ from pathlib import Path
 
 import chainlit as cl
 from chromadb.api.types import Metadata
+from langchain_core.messages import AIMessage, HumanMessage
 
 from rag_pipeline import (
     build_context,
@@ -37,6 +38,7 @@ async def on_chat_start():
         return
 
     cl.user_session.set("game", game_name)
+    cl.user_session.set("chat_history", [])
     if is_game_indexed(game_name):
         await cl.Message(
             content=f"**{game_name}** is already indexed. Ask away!"
@@ -105,13 +107,25 @@ async def on_message(message: cl.Message):
     chunks = retrieve(game, message.content)
     source_elements = _build_source_elements(chunks)
     context = build_context(chunks)
+    history = cl.user_session.get("chat_history") or []
 
     msg = cl.Message(content="", elements=source_elements)
     await msg.send()
 
+    answer_tokens: list[str] = []
     async for token in chain.astream(
-        {"input": message.content, "context": context, "game": game}
+        {
+            "input": message.content,
+            "context": context,
+            "game": game,
+            "chat_history": history,
+        }
     ):
+        answer_tokens.append(token)
         await msg.stream_token(token)
 
     await msg.update()
+
+    history.append(HumanMessage(content=message.content))
+    history.append(AIMessage(content="".join(answer_tokens)))
+    cl.user_session.set("chat_history", history)

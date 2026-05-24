@@ -78,7 +78,12 @@ async def _build_test_cases(
         chunks = retrieve(col_name, q.question, nresults, cfg=config)
         context_str = build_context(chunks)
         answer = await rag_chain.ainvoke(
-            {"game": dataset.game, "context": context_str, "input": q.question}
+            {
+                "game": dataset.game,
+                "context": context_str,
+                "input": q.question,
+                "chat_history": [],
+            }
         )
         test_case = LLMTestCase(
             input=q.question,
