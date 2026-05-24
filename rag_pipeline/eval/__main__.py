@@ -11,14 +11,13 @@ from rag_pipeline.eval.settings import EvalSettings
 
 CONFIGS = [
     EvalSettings(chunking_strategy="fixed_size", chunk_context_enrichment=False),
-    EvalSettings(chunking_strategy="fixed_size", chunk_context_enrichment=True),
     EvalSettings(
         chunking_strategy="fixed_size",
-        chunk_context_enrichment=True,
-        chunk_size=256,
-        chunk_overlap=32,
+        chunk_context_enrichment=False,
+        embedding_model="embeddinggemma:latest",
     ),
-    EvalSettings(chunking_strategy="hierarchical", chunk_context_enrichment=True),
+    EvalSettings(chunking_strategy="fixed_size", chunk_context_enrichment=True),
+    EvalSettings(chunking_strategy="hierarchical", chunk_context_enrichment=False),
 ]
 
 dataset = EvalDataset.from_file(Path("eval_dataset.json"))

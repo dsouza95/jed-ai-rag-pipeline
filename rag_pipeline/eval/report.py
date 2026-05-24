@@ -158,27 +158,36 @@ def _render_summary_table(results: list[EvalResult]) -> str:
     rows = ""
     for r in results:
         s = r.scores
+        ctx = "Yes" if r.config.chunk_context_enrichment else "No"
+        ctx_style = (
+            "color:#16a34a;font-weight:600"
+            if r.config.chunk_context_enrichment
+            else "color:#6b7280"
+        )
+        td = "style='padding:8px 12px"
+        strategy = html.escape(r.config.chunking_strategy)
+        embedding = html.escape(r.config.embedding_model)
         rows += (
             f"<tr>"
-            f"""<td style='padding:8px 12px;font-weight:600'>
-            {html.escape(r.config.chunking_strategy)}
-            </td>"""
-            f"""<td style='padding:8px 12px;color:#6b7280'>
-                {html.escape(r.config.embedding_model)}
-            </td>"""
-            f"<td style='padding:8px 12px'>{_score_badge(s.contextual_precision)}</td>"
-            f"<td style='padding:8px 12px'>{_score_badge(s.faithfulness)}</td>"
-            f"<td style='padding:8px 12px'>{_score_badge(s.answer_relevancy)}</td>"
-            f"<td style='padding:8px 12px'>{_score_badge(s.average)}</td>"
+            f"<td {td};font-weight:600'>{strategy}</td>"
+            f"<td {td};color:#6b7280'>{embedding}</td>"
+            f"<td {td};{ctx_style}'>{ctx}</td>"
+            f"<td {td}'>{_score_badge(s.contextual_precision)}</td>"
+            f"<td {td}'>{_score_badge(s.faithfulness)}</td>"
+            f"<td {td}'>{_score_badge(s.answer_relevancy)}</td>"
+            f"<td {td}'>{_score_badge(s.average)}</td>"
             f"</tr>"
         )
+    table_style = (
+        "width:100%;border-collapse:collapse;margin-bottom:32px;font-size:0.9em"
+    )
     return f"""
-    <table style="width:100%;border-collapse:collapse;
-    margin-bottom:32px;font-size:0.9em">
+    <table style="{table_style}">
       <thead>
         <tr style="background:#f1f5f9;text-align:left">
           <th style="padding:10px 12px;font-weight:600">Strategy</th>
           <th style="padding:10px 12px;font-weight:600">Embedding</th>
+          <th style="padding:10px 12px;font-weight:600">Context</th>
           <th style="padding:10px 12px;font-weight:600">Ctx Relevancy</th>
           <th style="padding:10px 12px;font-weight:600">Faithfulness</th>
           <th style="padding:10px 12px;font-weight:600">Ans Relevancy</th>
