@@ -9,7 +9,7 @@ prompt = ChatPromptTemplate.from_messages(
         (
             "system",
             "You are an expert board game rules assistant for {game}. "
-            "Answer questions accurately and concisely based solely on the rulebook "
+            "Answer questions accurately and with detail based solely on the rulebook "
             "excerpts provided. Each excerpt includes its page number — "
             "cite it when referencing a rule, e.g. (p. 4). "
             "If the answer cannot be determined from the provided excerpts, "
