@@ -1,3 +1,5 @@
+> **Assignment deliverable:** The scalability write-up required by the brief (deliverable 3 — one-paragraph on what would change with a larger corpus) is in [SCALING.md](SCALING.md).
+
 # RAG Pipeline
 
 A from-scratch implementation of a Retrieval-Augmented Generation (RAG) pipeline, built as part of the Factored Jed-AI mission series. The goal is to understand the core mechanics of RAG — document ingestion, chunking, embedding, retrieval, and generation — without relying on high-level abstractions that obscure what's happening under the hood.
